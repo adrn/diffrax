@@ -22,6 +22,7 @@ from .kencarp5 import KenCarp5 as KenCarp5
 from .kvaerno3 import Kvaerno3 as Kvaerno3
 from .kvaerno4 import Kvaerno4 as Kvaerno4
 from .kvaerno5 import Kvaerno5 as Kvaerno5
+from .leapfrog import Leapfrog as Leapfrog
 from .leapfrog_midpoint import LeapfrogMidpoint as LeapfrogMidpoint
 from .midpoint import Midpoint as Midpoint
 from .milstein import (
