@@ -19,14 +19,15 @@ Yb: TypeAlias = PyTree[Float[ArrayLike, "?*y"], " Y"]
 
 
 class Leapfrog(AbstractSolver):
-    """Leapfrog symplectic integrator.
+    """Leapfrog (velocity Verlet) symplectic integrator.
 
-    2nd order symplectic method. Does not support adaptive step sizing.
-    Uses 1st order local linear interpolation for dense/ts output.
+    This is a 2nd order symplectic integration method. This integrator does not support
+    adaptive step sizing. This is either known as kick-drift-kick leapfrog or velocity
+    Verlet.
 
-    Standard leapfrog scheme for symplectic integration. Assuming that:
+    Assuming that:
 
-        v0, w0 = y0
+        x0, v0 = y0
 
     and:
 
@@ -34,9 +35,9 @@ class Leapfrog(AbstractSolver):
 
     This method computes the next step as:
 
-        w_half = w0 + h/2 * g(t0, v0)
-        v1 = v0 + h * f(t0, w_half)
-        w1 = w_half + h/2 * g(t1, v1)
+        v_half = v0 + h/2 * g(t0, x0)
+        x1 = x0 + h * f(t0, v_half)
+        v1 = v_half + h/2 * g(t1, x1)
     """
 
     term_structure: ClassVar = (AbstractTerm, AbstractTerm)
@@ -70,14 +71,14 @@ class Leapfrog(AbstractSolver):
         del solver_state, made_jump
 
         f, g = terms
-        v0, w0 = y0
+        x0, v0 = y0
         h = t1 - t0
 
-        w_half = (w0**ω + 0.5 * h * g.vf(t0, v0, args) ** ω).ω
-        v1 = (v0**ω + h * f.vf(t0, w_half, args) ** ω).ω
-        w1 = (w_half**ω + 0.5 * h * g.vf(t1, v1, args) ** ω).ω
+        v_half = (v0**ω + 0.5 * h * g.vf(t0, x0, args) ** ω).ω
+        x1 = (x0**ω + h * f.vf(t0, v_half, args) ** ω).ω
+        v1 = (v_half**ω + 0.5 * h * g.vf(t1, x1, args) ** ω).ω
 
-        y1 = (v1, w1)
+        y1 = (x1, v1)
         dense_info = dict(y0=y0, y1=y1)
         return y1, None, dense_info, None, RESULTS.successful
 
@@ -89,10 +90,10 @@ class Leapfrog(AbstractSolver):
         args: Args,
     ) -> VF:
         f, g = terms
-        v0, w0 = y0
-        fv = f.vf(t0, w0, args)
-        gw = g.vf(t0, v0, args)
-        return fv, gw
+        x0, v0 = y0
+        xdot = f.vf(t0, v0, args)
+        vdot = g.vf(t0, x0, args)
+        return xdot, vdot
 
 
 Leapfrog.__init__.__doc__ = """**Arguments:** None"""
